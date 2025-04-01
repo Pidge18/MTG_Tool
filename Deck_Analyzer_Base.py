@@ -12,8 +12,7 @@ def get_card_data(query):
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error: {response.status_code}")
-        return None
+        raise RuntimeError(f"API Error: {response.status_code}")
 
 #This will print card names - Evan
 def print_card_name(data):
@@ -32,9 +31,9 @@ def select_card_from_data(data):
         data_count = len(data['data'])
         current_card = 0
         for card in data['data']:
-            print(f"[{current_card}] {card['name']}")
+            print(f"[{current_card + 1}] {card['name']}")
             current_card += 1
-        user_choice = int(input("Select a number.\n"))
+        user_choice = int(input("Select a number.\n")) - 1
         if user_choice < 0 or user_choice > len(data):
             raise ArgumentError("Invalid user choice!")
     else:
@@ -42,14 +41,49 @@ def select_card_from_data(data):
     return data['data'][user_choice]
 
 
+#Evan's notes: Prof please correct me if I am wrong =>
+# This class defines an argument with user input
+# Argument is used as defining items for the query like 'name','keywords','colors' or a multi-request
+class ScryfallQuery:
+    def __init__(self, argument, user_input):
+        self.argument = argument
+        self.user_input = user_input
+    def get(self):
+        return f"{self.argument}:{self.user_input}"
+
+def get_query_from_user() -> ScryfallQuery:
+    return ScryfallQuery("bla","bla")
+
+
+class InputableArgument:
+    def input(self):
+        raise NotImplementedError("Calling function on abstract base!")
+    def get_query(self):
+        raise NotImplementedError("Calling function on abstract base!")
+
+class StringArgument(InputableArgument):
+    arg_name = ""
+    value = ""
+    def __init__(self, argument_name: str):
+        self.arg_name = argument_name
+        value = ""
+    def input(self):
+        self.value = input(f"Provide value for {self.arg_name}: ")
+    def get_query(self):
+        return ScryfallQuery(argument=self.arg_name,user_input=self.value)
+
+
+
+
+
 
 #This will define the query type for card
 def select_query_type(argument):
     switcher = {
-        1: "Name",
-        2: "Keywords",
-        3: "Colors",
-        4: "Multi-Request: Multiple fields"
+        1: "Name", # -> name
+        2: "Keywords", # -> keywords
+        3: "Colors", # -> colors: R(ed),W(hite),G(reen),B(lack),(Bl)U(e)
+        4: "Multi-Request: Multiple fields" # -> selecting multiples -> EX: name,keywords
     }
     return switcher.get(argument, "nothing")
 
@@ -57,7 +91,12 @@ if __name__ == "__main__":
     # argument = input("How would you like to search for your card?")
     # print (select_query_type(argument))
 
-    search_query = "name:Tiamat"
+    base_argument = InputableArgument()
+
+    base_argument = StringArgument("name")
+    base_argument.input()
+
+    search_query = base_argument.get_query().get()
     card_data = get_card_data(search_query)
     selected_card = select_card_from_data(card_data)
 

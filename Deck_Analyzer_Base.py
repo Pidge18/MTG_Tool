@@ -71,7 +71,7 @@ if __name__ == "__main__":
 # def card_query(user_query):
 
 
-
+# My dick is small
 
 
 
